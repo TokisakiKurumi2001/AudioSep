@@ -12,6 +12,8 @@ from .model import CLAP, convert_weights_to_fp16
 from .openai import load_openai_model
 from .pretrained import get_pretrained_url, download_pretrained
 from .transform import image_transform
+from packaging import version
+import transformers
 
 _MODEL_CONFIG_PATHS = [Path(__file__).parent / f"model_configs/"]
 _MODEL_CONFIGS = {}  # directory (model_name: config) of model architecture configs
@@ -150,6 +152,8 @@ def create_model(
                     f"Loading pretrained {amodel_name}-{tmodel_name} weights ({pretrained})."
                 )
                 ckpt = load_state_dict(checkpoint_path, skip_params=True)
+                if version.parse(transformers.__version__) >= version.parse("4.31.0"):
+                    del ckpt["text_branch.embeddings.position_ids"]
                 model.load_state_dict(ckpt)
                 param_names = [n for n, p in model.named_parameters()]
                 # for n in param_names:
